@@ -1,0 +1,52 @@
+{
+  "update": [
+    {
+      "_id": "BeEC8x24rkTTgjvE5RCkn8yEqsSoZEjdf5",
+      "t": "d",
+      "usernames": ["ben", "eve"],
+      "usersCount": 2,
+      "msgs": 1,
+      "ts": "2023-07-19T14:20:55.639Z",
+      "uids": ["BeEC8x24rkTTgjvE5", "RCkn8yEqsSoZEjdf5"],
+      "default": false,
+      "ro": false,
+      "sysMes": true,
+      "_updatedAt": "2023-07-19T14:21:02.340Z",
+      "lastMessage": {
+        "alias": "",
+        "msg": "wassup",
+        "attachments": [],
+        "parseUrls": true,
+        "groupable": false,
+        "ts": "2023-07-19T14:20:58.684Z",
+        "u": { "_id": "BeEC8x24rkTTgjvE5", "username": "eve", "name": "eve" },
+        "rid": "BeEC8x24rkTTgjvE5RCkn8yEqsSoZEjdf5",
+        "_id": "6seCbQszzksRxp8Ds",
+        "_updatedAt": "2023-07-19T14:21:02.046Z",
+        "urls": [],
+        "mentions": [],
+        "channels": [],
+        "md": [
+          {
+            "type": "PARAGRAPH",
+            "value": [{ "type": "PLAIN_TEXT", "value": "wassup" }]
+          }
+        ]
+      },
+      "lm": "2023-07-19T14:20:58.684Z"
+    },
+    {
+      "_id": "GENERAL",
+      "ts": "2023-07-03T16:07:07.204Z",
+      "t": "c",
+      "name": "general",
+      "usernames": [],
+      "msgs": 24,
+      "usersCount": 7,
+      "default": true,
+      "_updatedAt": "2023-07-19T12:05:42.833Z"
+    }
+  ],
+  "remove": [],
+  "success": true
+}
