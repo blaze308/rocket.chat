@@ -1,14 +1,20 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:mychatapp/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../connections/connections.dart';
-import '../provider/auth_provider.dart';
 
 class Chat extends StatefulWidget {
   final String username;
   final String roomId;
-  const Chat({super.key, required this.username, required this.roomId});
+  final String updatedAt;
+  const Chat({
+    super.key,
+    required this.username,
+    required this.roomId,
+    required this.updatedAt,
+  });
 
   @override
   State<Chat> createState() => _ChatState();
@@ -34,7 +40,6 @@ class _ChatState extends State<Chat> {
 
   @override
   Widget build(BuildContext context) {
-    // String provider = AuthProvider().receiver;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.username),
@@ -43,17 +48,16 @@ class _ChatState extends State<Chat> {
         children: [
           Consumer<AuthProvider>(
             builder: (context, provider, child) {
-              List<Map<String, dynamic>> messages =
-                  provider.getMessagesByUsername(widget.username);
+              List<Map<String, dynamic>> messages = provider.syncMessagesList;
               return Expanded(
                   child: ListView.builder(
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
-                  String senderName = provider.username;
+                  String senderName = messages[index]["sender"];
                   String msg = messages[index]["msg"];
                   if (senderName == provider.username) {
                     return ListTile(
-                      title: Text(provider.username),
+                      title: Text(senderName),
                       subtitle: Text(msg),
                     );
                   } else {
@@ -86,22 +90,20 @@ class _ChatState extends State<Chat> {
                 receiverName: widget.username,
                 context: context,
               );
-
-              // await Connections().syncMessages(context);
             },
             child: const Text("send message"),
           ),
           ElevatedButton(
             onPressed: () async {
-              // await Connections().postMessage(
-              //   text: _textcontroller.text,
-              //   username: widget.username,
-              //   context: context,
-              // );
-
-              await Connections().syncMessages(context);
+              await Connections().syncMessages(
+                context: context,
+                roomId: widget.roomId.toString(),
+                updatedAt: DateTime.parse(widget.updatedAt.toString())
+                    .subtract(const Duration(hours: 10))
+                    .toIso8601String(),
+              );
             },
-            child: const Text("sync message"),
+            child: const Text("sync messages for this chat"),
           ),
         ],
       ),

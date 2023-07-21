@@ -5,15 +5,15 @@ import 'package:mychatapp/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      child: const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: MyApp(),
-      ),
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (context) => AuthProvider()),
+    ],
+    child: const MaterialApp(
+      home: MyApp(),
+      debugShowCheckedModeBanner: false,
     ),
-  );
+  ));
 }
 
 class MyApp extends StatefulWidget {

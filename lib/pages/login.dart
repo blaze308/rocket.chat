@@ -73,12 +73,6 @@ class _LoginState extends State<Login> {
                 },
                 child: const Text("Login"),
               ),
-              // ElevatedButton(
-              //   onPressed: () async {
-              //     Connections().getChats(context);
-              //   },
-              //   child: const Text("get"),
-              // ),
             ],
           ),
         ),

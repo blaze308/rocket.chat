@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, prefer_final_fields
 
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import "package:http/http.dart" as http;
@@ -9,7 +8,6 @@ import 'package:mychatapp/pages/chat_page.dart';
 import 'package:provider/provider.dart';
 import '../pages/login.dart';
 import '../provider/auth_provider.dart';
-import '../utils/snackbar.dart';
 
 class Connections {
   final storage = const FlutterSecureStorage();
@@ -34,13 +32,13 @@ class Connections {
       );
 
       if (response.statusCode == 200) {
-        mySnackBar(context, "user created...login with the same credentials");
+        print("user created...login with the same credentials");
 
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => const Login()));
       }
     } catch (e) {
-      mySnackBar(context, "Register Error: ${e.toString()}");
+      print("Register Error: ${e.toString()}");
     }
   }
 
@@ -58,7 +56,7 @@ class Connections {
       );
 
       if (response.statusCode == 200) {
-        mySnackBar(context, "user logged in");
+        print("user logged in");
 
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) => const ChatPage()));
@@ -83,7 +81,7 @@ class Connections {
         provider.username = await jsonDecode(storageUsername!);
       }
     } catch (e) {
-      mySnackBar(context, "Login Error: ${e.toString()}");
+      print("Login Error: ${e.toString()}");
     }
   }
 
@@ -101,17 +99,21 @@ class Connections {
       );
 
       var users = jsonDecode(response.body)["users"];
+      List<String> fetchedNames = [];
 
       for (var user in users) {
         String username = user["username"];
+        fetchedNames.add(username);
 
         if (provider.username != username &&
-            !provider.uList.contains(username)) {
+            !provider.allUsersList.contains(username)) {
           provider.addUsername(username);
         }
+        provider.allUsersList
+            .removeWhere((name) => !fetchedNames.contains(name));
       }
     } catch (e) {
-      mySnackBar(context, "Get Users Error: ${e.toString()}");
+      print("Get Users Error: ${e.toString()}");
     }
   }
 
@@ -133,10 +135,10 @@ class Connections {
       );
 
       if (response.statusCode == 200) {
-        mySnackBar(context, "message sent successfully");
+        print("message sent successfully");
       }
     } catch (e) {
-      mySnackBar(context, "Post Message Error: ${e.toString()}");
+      print("Post Message Error: ${e.toString()}");
     }
   }
 
@@ -154,7 +156,6 @@ class Connections {
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-
         var rooms = data["update"];
 
         List<Map<String, String>> chatDataList = [];
@@ -181,19 +182,21 @@ class Connections {
         provider.setChatDataList(chatDataList);
       }
     } catch (e) {
-      mySnackBar(context, "Get Chats Error: ${e.toString()}");
+      print("Get Chats Error: ${e.toString()}");
     }
   }
 
-  syncMessages(BuildContext context) async {
+  syncMessages({
+    required BuildContext context,
+    required String roomId,
+    required String updatedAt,
+  }) async {
     AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
-    var time =
-        DateTime.parse(provider.timestamp).subtract(const Duration(hours: 1));
-    provider.timestamp = time.toIso8601String();
+
     try {
       http.Response response = await http.get(
         Uri.parse(
-            "http://10.0.2.2:3000/api/v1/chat.syncMessages?roomId=${provider.roomId}&lastUpdate=$time&sort=${provider.username}"),
+            "http://10.0.2.2:3000/api/v1/chat.syncMessages?roomId=$roomId&lastUpdate=$updatedAt"),
         headers: <String, String>{
           "X-Auth-Token": provider.authToken,
           "X-User-Id": provider.userId,
@@ -201,16 +204,27 @@ class Connections {
         },
       );
 
-      // get jsondata
-      var messages = await jsonDecode(response.body)["result"]["updated"];
+      if (response.statusCode == 200) {
+        var data = await jsonDecode(response.body);
+        var messages = data["result"]["updated"];
 
-      for (var message in messages) {
-        String sender = message["u"]["name"];
-        String msg = message["msg"];
-        provider.addMessageByUsername(sender, msg);
+        List<Map<String, dynamic>> syncMessagesList = [];
+        print(messages);
+
+        for (var message in messages) {
+          String sender = message["u"]["name"];
+          String msg = message["msg"];
+
+          Map<String, dynamic> syncMesages = {
+            "sender": sender,
+            "msg": msg,
+          };
+          syncMessagesList.add(syncMesages);
+        }
+        provider.setSyncMessagesList(syncMessagesList);
       }
     } catch (e) {
-      mySnackBar(context, "Sync Messages Error: ${e.toString()}");
+      print("Sync Messages Error: ${e.toString()}");
     }
   }
 }
