@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:mychatapp/connections/connections.dart';
 import 'package:provider/provider.dart';
 import '../provider/auth_provider.dart';
-import 'chat.dart';
+import 'socketChat.dart';
 
-class UsersPage extends StatefulWidget {
-  const UsersPage({Key? key}) : super(key: key);
+class SocketUsers extends StatefulWidget {
+  const SocketUsers({Key? key}) : super(key: key);
 
   @override
-  State<UsersPage> createState() => _UsersPageState();
+  State<SocketUsers> createState() => _SocketUsersState();
 }
 
-class _UsersPageState extends State<UsersPage> {
+class _SocketUsersState extends State<SocketUsers> {
   @override
   void initState() {
     getUsers();
@@ -63,7 +63,7 @@ class GetAllUsers extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => Chat(
+                    builder: (context) => SocketChat(
                       username: username,
                       roomId: "",
                       updatedAt: "",

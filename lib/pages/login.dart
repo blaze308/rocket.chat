@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:mychatapp/connections/connections.dart';
+import 'package:mychatapp/provider/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -65,10 +67,10 @@ class _LoginState extends State<Login> {
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     await Connections().loginUser(
-                        user: _usercontroller.text,
-                        password: _passwordcontroller.text,
-                        context: context);
-                    await Connections().getUsers(context);
+                      user: _usercontroller.text,
+                      password: _passwordcontroller.text,
+                      context: context,
+                    );
                   }
                 },
                 child: const Text("Login"),

@@ -20,12 +20,16 @@ class _ChatPageState extends State<ChatPage> {
     _fetchChats();
   }
 
-  void _fetchChats() {
+  void _fetchChats() async {
     AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
-    Connections()
-        .getChats(context)
-        .then((chatDataList) => provider.setChatDataList(chatDataList))
-        .onError((error, stackTrace) => Text(error.toString()));
+
+    try {
+      List<Map<String, String>> chatDataList =
+          await Connections().getChats(context);
+      provider.setChatDataList(chatDataList);
+    } catch (e) {
+      print("Error fetching chat data list: ${e.toString()}");
+    }
   }
 
   @override
@@ -37,6 +41,7 @@ class _ChatPageState extends State<ChatPage> {
       body: Consumer<AuthProvider>(
         builder: (context, provider, child) {
           List<Map<String, String>> chatDataList = provider.chatDataList;
+
           return ListView.builder(
             itemCount: chatDataList.length,
             itemBuilder: (context, index) {
@@ -47,12 +52,14 @@ class _ChatPageState extends State<ChatPage> {
               DateTime date = DateTime.parse(updatedAt.toString());
 
               return GestureDetector(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => Chat(
-                      username: name.toString(),
-                      roomId: roomId.toString(),
-                      updatedAt: updatedAt.toString()),
-                )),
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => Chat(
+                        username: name.toString(),
+                        roomId: roomId.toString(),
+                        updatedAt: updatedAt.toString()),
+                  ));
+                },
                 child: ListTile(
                   title: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),

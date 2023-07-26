@@ -8,9 +8,18 @@ import 'package:mychatapp/pages/chat_page.dart';
 import 'package:provider/provider.dart';
 import '../pages/login.dart';
 import '../provider/auth_provider.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class Connections {
   final storage = const FlutterSecureStorage();
+  late IO.Socket socket;
+
+  Connections() {
+    socket = IO.io("http://10.0.2.2:3000", <String, dynamic>{
+      'transports': ['websocket'],
+    });
+    socket.onConnect((_) => print("Socket.IO Connected"));
+  }
 
   Future createUser({
     required String username,
@@ -85,7 +94,7 @@ class Connections {
     }
   }
 
-  getUsers(BuildContext context) async {
+  Future getUsers(BuildContext context) async {
     AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
@@ -142,7 +151,7 @@ class Connections {
     }
   }
 
-  getChats(BuildContext context) async {
+  Future getChats(BuildContext context) async {
     AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
     try {
       http.Response response = await http.get(
@@ -178,8 +187,8 @@ class Connections {
               chatDataList.add(chatData);
             }
           }
-          provider.setChatDataList(chatDataList);
         }
+        return provider.setChatDataList(chatDataList);
       }
     } catch (e) {
       print("Get Chats Error: ${e.toString()}");
@@ -214,21 +223,50 @@ class Connections {
         for (var message in messages) {
           String sender = message["u"]["name"];
           String msg = message["msg"];
-          String roomID = message["rid"];
 
-          if (roomId == roomId) {
-            Map<String, dynamic> syncMesages = {
-              "sender": sender,
-              "msg": msg,
-              "roomId": roomID
-            };
-            syncMessagesList.add(syncMesages);
-          }
+          Map<String, dynamic> syncMesages = {
+            "sender": sender,
+            "msg": msg,
+          };
+          syncMessagesList.add(syncMesages);
         }
         provider.setSyncMessagesList(syncMessagesList);
       }
     } catch (e) {
       print("Sync Messages Error: ${e.toString()}");
     }
+  }
+
+  void setupSocketListeners(BuildContext context) {
+    AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
+
+    socket.on("newMessge", (data) {
+      String sender = data["sender"];
+      String message = data["message"];
+
+      print("New Message from $sender: $message");
+    });
+
+    socket.on("joinRoom", (data) {
+      socket.emit("joinRoom", {"roomName": "@${provider.username}"});
+    });
+
+    socket.on("leaveRoom", (data) {
+      socket.emit("leaveRoom", {"roomName": "@${provider.username}"});
+    });
+  }
+
+  void sendMessage({
+    required String text,
+    required String receiverName,
+    required BuildContext context,
+  }) async {
+    AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
+
+    socket.emit("newMessage", {
+      "sender": provider.username,
+      "receiver": receiverName,
+      "message": text,
+    });
   }
 }

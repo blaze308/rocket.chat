@@ -5,11 +5,11 @@ import 'package:mychatapp/provider/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../connections/connections.dart';
 
-class Chat extends StatefulWidget {
+class SocketChat extends StatefulWidget {
   final String username;
   final String roomId;
   final String updatedAt;
-  const Chat({
+  const SocketChat({
     super.key,
     required this.username,
     required this.roomId,
@@ -17,20 +17,18 @@ class Chat extends StatefulWidget {
   });
 
   @override
-  State<Chat> createState() => _ChatState();
+  State<SocketChat> createState() => _SocketChatState();
 }
 
-class _ChatState extends State<Chat> {
+class _SocketChatState extends State<SocketChat> {
   TextEditingController _textcontroller = TextEditingController();
   TextEditingController _usernamecontroller = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void initState() {
-    super.initState();
     _textcontroller = TextEditingController();
     _usernamecontroller = TextEditingController();
-    _fetchData();
+    super.initState();
   }
 
   @override
@@ -38,30 +36,6 @@ class _ChatState extends State<Chat> {
     _textcontroller.dispose();
     _usernamecontroller.dispose();
     super.dispose();
-  }
-
-  void _fetchData() async {
-    setState(() {
-      _isLoading = true;
-    });
-    AuthProvider provider = Provider.of<AuthProvider>(context, listen: false);
-
-    try {
-      List<Map<String, dynamic>> chatData = await Connections().syncMessages(
-          context: context,
-          roomId: widget.roomId,
-          updatedAt: DateTime.parse(widget.updatedAt.toString())
-              .subtract(const Duration(hours: 10))
-              .toIso8601String());
-
-      provider.setChatData(widget.roomId, chatData);
-    } catch (e) {
-      print("Error fetching chat data: ${e.toString()}");
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -72,19 +46,12 @@ class _ChatState extends State<Chat> {
       ),
       body: Column(
         children: [
-          if (_isLoading)
-            const Expanded(
-                child: Center(
-              child: CircularProgressIndicator.adaptive(),
-            )),
-          if (widget.roomId == "") Text("new Chat"),
           Consumer<AuthProvider>(
             builder: (context, provider, child) {
               List<Map<String, dynamic>> messages = provider.syncMessagesList;
               return Expanded(
                   child: ListView.builder(
                 itemCount: messages.length,
-                reverse: true,
                 itemBuilder: (context, index) {
                   String senderName = messages[index]["sender"];
                   String msg = messages[index]["msg"];
@@ -123,18 +90,10 @@ class _ChatState extends State<Chat> {
                 receiverName: widget.username,
                 context: context,
               );
-              await Connections().syncMessages(
-                context: context,
-                roomId: widget.roomId.toString(),
-                updatedAt: DateTime.parse(widget.updatedAt.toString())
-                    .subtract(const Duration(hours: 10))
-                    .toIso8601String(),
-              );
             },
             child: const Text("send message"),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh_outlined),
+          ElevatedButton(
             onPressed: () async {
               await Connections().syncMessages(
                 context: context,
@@ -144,6 +103,7 @@ class _ChatState extends State<Chat> {
                     .toIso8601String(),
               );
             },
+            child: const Text("sync messages for this chat"),
           ),
         ],
       ),
